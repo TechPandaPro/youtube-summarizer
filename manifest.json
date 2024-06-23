@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Summarizer",
+  "version": "1.0.0",
+  "description": "Summarize YouTube videos and ask questions about them",
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/watch?v=*"],
+      "css": ["styles.css"],
+      "js": ["script.js"]
+    }
+  ]
+}
