@@ -9,5 +9,16 @@
       "css": ["styles.css"],
       "js": ["script.js"]
     }
-  ]
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["/options.html"],
+      "matches": ["http://*/*", "https://*/*"]
+    }
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
+  "permissions": ["storage"]
 }

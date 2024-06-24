@@ -3,6 +3,8 @@ observer.observe(document.body, { childList: true, subtree: true });
 
 const chatBtnSvg = `<svg width="181" height="181" viewBox="0 0 181 181" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" overflow="hidden"><g transform="translate(-1108 -898)"><path d="M1142 988.5C1142 957.296 1167.3 932 1198.5 932 1229.7 932 1255 957.296 1255 988.5 1255 1019.7 1229.7 1045 1198.5 1045 1167.3 1045 1142 1019.7 1142 988.5Z" fill-rule="evenodd"/></g></svg>`;
 
+let apiKey = "";
+
 function mutationCallback() {
   const topLevelButtons = document.querySelector(
     "ytd-watch-metadata #top-level-buttons-computed"
@@ -72,8 +74,23 @@ function mutationCallback() {
     .addEventListener("click", toggleChat);
 }
 
-function toggleChat() {
+async function toggleChat() {
   console.log("Chat toggle clicked");
+
+  if (!apiKey) apiKey = (await chrome.storage.local.get({ apiKey: "" })).apiKey;
+
+  if (!apiKey) {
+    const doRedirect = confirm(
+      "You have not added an OpenAI API key to YouTube Summarizer. YouTube Summarizer requires a bring-your-own OpenAI API key to function. Would you like to be redirected to the options page?"
+    );
+
+    if (doRedirect) {
+      if (chrome.runtime.openOptionsPage) chrome.runtime.openOptionsPage();
+      else window.open(chrome.runtime.getURL("options.html"));
+    }
+
+    return;
+  }
 
   const existingChat = document.querySelector(
     'ytd-engagement-panel-section-list-renderer[data-yt-summarize-role="chatWindow"]'
@@ -561,18 +578,15 @@ function toggleChat() {
     </tp-yt-paper-button>
   `;
 
-  const statusDiv = document.querySelector('[data-yt-summarize-role="status"]');
-  statusDiv.innerHTML = "Loading transcript...";
-
-  //   <div
-  //   id="label-text"
-  //   style-target="label-text"
-  //   class="style-scope yt-dropdown-menu"
-  //   data-yt-summarize-role="status"
-  // >
+  setStatus("Loading transcript...");
 
   const observer = new MutationObserver(transcriptModified);
   observer.observe(transcriptElem, { childList: true, subtree: true });
+}
+
+function setStatus(text) {
+  const statusDiv = document.querySelector('[data-yt-summarize-role="status"]');
+  statusDiv.innerHTML = text;
 }
 
 function transcriptModified() {
@@ -590,7 +604,8 @@ function transcriptModified() {
     .map((transcriptString) => transcriptString.innerText)
     .join("\n");
 
-  console.log(transcript);
-
-  console.log("modified!");
+  if (transcript) {
+    console.log(transcript);
+    setStatus("Reading transcript...");
+  }
 }

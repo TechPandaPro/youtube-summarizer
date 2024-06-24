@@ -1,0 +1,59 @@
+body {
+  margin: 0;
+
+  padding: 12px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  font-size: 14px;
+}
+
+button,
+input {
+  border: 1px solid black;
+  box-sizing: border-box;
+}
+
+button {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 4px 8px;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: rgb(229 229 229);
+}
+
+button:active {
+  background-color: rgb(219 219 219);
+}
+
+input {
+  border-radius: 4px;
+  padding: 3px 6px;
+}
+
+.optionContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.optionContainer .details {
+  font-size: 0.8em;
+  color: rgb(80, 80, 80);
+}
+
+.optionContainer input {
+  width: 80%;
+}
+
+.saveContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  align-items: center;
+}

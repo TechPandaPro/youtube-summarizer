@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>YouTube Summarizer Options</title>
+    <link rel="stylesheet" href="options.css" />
+    <script src="options.js" defer></script>
+  </head>
+  <body>
+    <div class="optionContainer">
+      <label for="apiKey">OpenAI API Key:</label>
+      <input type="password" id="apiKey" placeholder="sk-..." />
+      <span class="details"
+        >Your API key is stored on-device. When using YouTube Summarizer, your
+        API key will be shared with OpenAI and your OpenAI account will be
+        charged
+        <a href="https://openai.com/api/pricing/" target="_blank"
+          >per their API pricing</a
+        >. YouTube Summarizer never sends your API key to any other
+        servers.</span
+      >
+    </div>
+    <div class="saveContainer">
+      <button id="save">Save</button>
+      <div id="status"></div>
+    </div>
+  </body>
+</html>
