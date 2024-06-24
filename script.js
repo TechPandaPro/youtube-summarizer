@@ -1,14 +1,14 @@
 const observer = new MutationObserver(mutationCallback);
 observer.observe(document.body, { childList: true, subtree: true });
 
+const chatBtnSvg = `<svg width="181" height="181" viewBox="0 0 181 181" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" overflow="hidden"><g transform="translate(-1108 -898)"><path d="M1142 988.5C1142 957.296 1167.3 932 1198.5 932 1229.7 932 1255 957.296 1255 988.5 1255 1019.7 1229.7 1045 1198.5 1045 1167.3 1045 1142 1019.7 1142 988.5Z" fill-rule="evenodd"/></g></svg>`;
+
 function mutationCallback() {
   const topLevelButtons = document.querySelector(
     "ytd-watch-metadata #top-level-buttons-computed"
   );
 
   if (!topLevelButtons) return;
-
-  // const actions = document.getElementById("actions");
 
   const emptyChatBtns = Array.from(
     document.querySelectorAll(".chat-btn")
@@ -20,58 +20,13 @@ function mutationCallback() {
     }
   }
 
-  if (
-    topLevelButtons.querySelector(
-      '.chat-btn button-view-model button[title="Chat"]'
-    )
-  )
-    return;
+  const chatBtn = topLevelButtons.querySelector(
+    '.chat-btn button-view-model button[title="Chat"]'
+  );
 
-  // observer.disconnect();
+  if (chatBtn) return;
 
   console.log(topLevelButtons);
-
-  // actions.insertAdjacentHTML(
-  //   "beforeend",
-  //   `
-  //   <p>hello</p>
-  //   `
-  // );
-
-  // return;
-
-  const chatBtnSvg = `
-    <yt-icon-shape class="style-scope yt-icon">
-      <icon-shape class="yt-spec-icon-shape">
-        <div
-          style="
-            width: 100%;
-            height: 100%;
-            display: block;
-            fill: currentcolor;
-          "
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            height="24"
-            viewBox="0 0 24 24"
-            width="24"
-            focusable="false"
-            style="
-              pointer-events: none;
-              display: inherit;
-              width: 100%;
-              height: 100%;
-            "
-          >
-            <path
-              d="M15 5.63 20.66 12 15 18.37V14h-1c-3.96 0-7.14 1-9.75 3.09 1.84-4.07 5.11-6.4 9.89-7.1l.86-.13V5.63M14 3v6C6.22 10.13 3.11 15.33 2 21c2.78-3.97 6.44-6 12-6v6l8-9-8-9z"
-            ></path>
-          </svg>
-        </div>
-      </icon-shape>
-    </yt-icon-shape>
-  `;
 
   topLevelButtons.insertAdjacentHTML(
     "beforeend",
@@ -87,10 +42,9 @@ function mutationCallback() {
           <div class="yt-spec-button-shape-next__icon" aria-hidden="true">
             <yt-icon style="width: 24px; height: 24px">
               <!--css-build:shady--><!--css-build:shady-->
-              ${chatBtnSvg}
             </yt-icon>
           </div>
-          <div class="yt-spec-button-shape-next__button-text-content">Share</div>
+          <div class="yt-spec-button-shape-next__button-text-content">Chat</div>
           <yt-touch-feedback-shape style="border-radius: inherit">
             <div
               class="yt-spec-touch-feedback-shape yt-spec-touch-feedback-shape--touch-response"
@@ -107,6 +61,17 @@ function mutationCallback() {
   );
 
   topLevelButtons.querySelector(
-    'button-view-model button[title="Chat"] .yt-spec-button-shape-next__button-text-content'
-  ).innerText = "Chat";
+    ".chat-btn yt-icon"
+  ).innerHTML = `<yt-icon-shape class="style-scope yt-icon"></yt-icon-shape>`;
+
+  topLevelButtons.querySelector(".chat-btn yt-icon yt-icon-shape").innerHTML =
+    chatBtnSvg;
+
+  topLevelButtons
+    .querySelector(".chat-btn button")
+    .addEventListener("click", toggleChat);
+}
+
+function toggleChat() {
+  console.log("Chat toggle clicked");
 }
