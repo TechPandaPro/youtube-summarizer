@@ -5,6 +5,8 @@ const chatBtnSvg = `<svg width="181" height="181" viewBox="0 0 181 181" xmlns="h
 
 let apiKey = "";
 
+let sentTranscript = false;
+
 function mutationCallback() {
   const topLevelButtons = document.querySelector(
     "ytd-watch-metadata #top-level-buttons-computed"
@@ -604,8 +606,67 @@ function transcriptModified() {
     .map((transcriptString) => transcriptString.innerText)
     .join("\n");
 
-  if (transcript) {
-    console.log(transcript);
-    setStatus("Reading transcript...");
-  }
+  if (!transcript || sentTranscript) return;
+
+  sentTranscript = true;
+
+  console.log(transcript);
+  setStatus("Reading transcript...");
+
+  console.log(apiKey);
+
+  fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: `You are a helpful summarizer. You summarize YouTube videos and answer questions that users may have about such videos. Refrain from mentioning that this is a YouTube video, as it is already known.
+
+Your ultimate goal is to save the user time from needing to watch the video. As such, be sure to include the points that are most important. Exclude the excess, verbose content, and trim it down to a concise, succint summary.
+
+For example, instead of simply stating "this video discusses the pros and cons of EVs", mention what these pros and cons actually are. This allows the user to garner value from the video without watching it in full.`,
+        },
+        {
+          role: "user",
+          content: `Transcript: """
+${transcript}
+"""
+
+Using the provided transcript, summarize this YouTube video.`,
+        },
+      ],
+    }),
+  })
+    .then((res) => res.json())
+    .then((res) => {
+      console.log(res);
+
+      const summary = res.choices[0].message.content;
+
+      console.log(summary);
+
+      const content = document.querySelector(
+        '[data-yt-summarize-role="chatWindow"] #content'
+      );
+
+      content.innerHTML = `
+        <div data-yt-summarize-role="messages">
+          <div data-yt-summarize-role="message"></div>
+        </div>
+      `;
+
+      const firstMessage = content.querySelector(
+        '[data-yt-summarize-role="message"]'
+      );
+
+      firstMessage.innerText = summary;
+
+      setStatus("Ready and waiting to assist!");
+    });
 }

@@ -2,3 +2,21 @@
   width: 100%;
   height: 100%;
 }
+
+html[dark] [data-yt-summarize-role="messages"] {
+  color: white;
+}
+
+html:not([dark]) [data-yt-summarize-role="messages"] {
+  color: black;
+}
+
+[data-yt-summarize-role="messages"] {
+  margin: 16px;
+  font-size: 15px;
+  line-height: 1.4em;
+}
+
+[data-yt-summarize-role="chatWindow"] #content {
+  overflow: auto;
+}
