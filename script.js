@@ -618,12 +618,19 @@ function transcriptModified() {
 
   console.log(transcriptElem);
 
-  const transcript = Array.from(
+  const transcriptStamps = Array.from(
     transcriptElem.querySelectorAll(
-      "ytd-transcript-renderer #content ytd-transcript-search-panel-renderer #body ytd-transcript-segment-list-renderer #segments-container .segment yt-formatted-string"
+      "ytd-transcript-renderer #content ytd-transcript-search-panel-renderer #body ytd-transcript-segment-list-renderer #segments-container .segment"
     )
-  )
-    .map((transcriptString) => transcriptString.innerText)
+  ).map((segment) => ({
+    stamp: segment.querySelector(".segment-timestamp").innerText,
+    text: segment.querySelector(".segment-text").innerText,
+  }));
+
+  console.log(transcriptStamps);
+
+  const transcript = transcriptStamps
+    .map((segment) => `[${segment.stamp}] ${segment.text}`)
     .join("\n");
 
   if (!transcript || sentTranscript) return;
