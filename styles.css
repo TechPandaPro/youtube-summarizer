@@ -3,20 +3,83 @@
   height: 100%;
 }
 
-html[dark] [data-yt-summarize-role="messages"] {
+[data-yt-summarize-role="chatWindow"] #content {
+  overflow: auto;
+  font-size: 15px;
+}
+
+html[dark] [data-yt-summarize-role="chatWindow"] #content {
   color: white;
 }
 
-html:not([dark]) [data-yt-summarize-role="messages"] {
+html:not([dark]) [data-yt-summarize-role="chatWindow"] #content {
   color: black;
 }
 
 [data-yt-summarize-role="messages"] {
-  margin: 16px;
-  font-size: 15px;
+  margin: 16px 16px 8px 16px;
   line-height: 1.4em;
 }
 
-[data-yt-summarize-role="chatWindow"] #content {
-  overflow: auto;
+[data-yt-summarize-role="chatInputContainer"] {
+  display: flex;
+  gap: 12px;
+  padding: 0px 12px 12px 12px;
+}
+
+[data-yt-summarize-role="chatInputContainer"] input {
+  flex-grow: 1;
+
+  font-size: 0.95em;
+
+  padding: 4px;
+
+  border: none;
+  border-bottom: 2px solid gray;
+  outline: none;
+
+  background-color: transparent;
+  color: inherit;
+
+  transition: border-bottom-color 0.2s;
+}
+
+[data-yt-summarize-role="chatInputContainer"] input:focus {
+  border-bottom-color: lightgray;
+}
+
+[data-yt-summarize-role="chatInputContainer"] button {
+  padding: 4px 12px;
+
+  font-size: 0.95em;
+
+  border: 2px solid gray;
+  border-radius: 6px;
+
+  background-color: transparent;
+  color: inherit;
+
+  opacity: 0.7;
+
+  cursor: pointer;
+
+  transition: opacity 0.2s;
+}
+
+[data-yt-summarize-role="chatInputContainer"] button:hover {
+  opacity: 0.8;
+}
+
+[data-yt-summarize-role="chatInputContainer"] button:active {
+  opacity: 1;
+  background-color: rgb(128 128 128 / 0.03);
+}
+
+[data-yt-summarize-role="messageAuthor"] {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+[data-yt-summarize-role="messageContent"] {
+  margin-left: 4px;
 }

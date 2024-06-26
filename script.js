@@ -657,7 +657,14 @@ Using the provided transcript, summarize this YouTube video.`,
 
       content.innerHTML = `
         <div data-yt-summarize-role="messages">
-          <div data-yt-summarize-role="message"></div>
+          <div data-yt-summarize-role="message">
+            <div data-yt-summarize-role="messageAuthor"></div>
+            <div data-yt-summarize-role="messageContent"></div>
+          </div>
+        </div>
+        <div data-yt-summarize-role="chatInputContainer">
+          <input type="text" placeholder="Ask a question..." />
+          <button>Ask</button>
         </div>
       `;
 
@@ -665,8 +672,27 @@ Using the provided transcript, summarize this YouTube video.`,
         '[data-yt-summarize-role="message"]'
       );
 
-      firstMessage.innerText = summary;
+      firstMessage.querySelector(
+        '[data-yt-summarize-role="messageAuthor"]'
+      ).innerText = "YouTube Summarizer";
+
+      firstMessage.querySelector(
+        '[data-yt-summarize-role="messageContent"]'
+      ).innerText = summary;
 
       setStatus("Ready and waiting to assist!");
+
+      const chatInput = content.querySelector(
+        '[data-yt-summarize-role="chatInputContainer"] input'
+      );
+      const chatButton = content.querySelector(
+        '[data-yt-summarize-role="chatInputContainer"] button'
+      );
+
+      chatButton.focus();
+
+      chatButton.addEventListener("click", () => {
+        chatInput.value = "";
+      });
     });
 }
