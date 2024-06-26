@@ -4,8 +4,8 @@
 }
 
 [data-yt-summarize-role="chatWindow"] #content {
-  overflow: auto;
   font-size: 15px;
+  background-color: var(--yt-spec-brand-background-solid);
 }
 
 html[dark] [data-yt-summarize-role="chatWindow"] #content {
@@ -17,8 +17,23 @@ html:not([dark]) [data-yt-summarize-role="chatWindow"] #content {
 }
 
 [data-yt-summarize-role="messages"] {
-  margin: 16px 16px 8px 16px;
+  margin: 0 8px 8px 16px;
+  padding-top: 16px;
   line-height: 1.4em;
+  overflow: auto;
+}
+
+[data-yt-summarize-role="message"] + [data-yt-summarize-role="message"] {
+  margin-top: 12px;
+}
+
+[data-yt-summarize-role="messageAuthor"] {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+[data-yt-summarize-role="messageContent"] {
+  margin-left: 4px;
 }
 
 [data-yt-summarize-role="chatInputContainer"] {
@@ -73,13 +88,4 @@ html:not([dark]) [data-yt-summarize-role="chatWindow"] #content {
 [data-yt-summarize-role="chatInputContainer"] button:active {
   opacity: 1;
   background-color: rgb(128 128 128 / 0.03);
-}
-
-[data-yt-summarize-role="messageAuthor"] {
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-[data-yt-summarize-role="messageContent"] {
-  margin-left: 4px;
 }

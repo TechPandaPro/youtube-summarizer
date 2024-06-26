@@ -1,3 +1,9 @@
+const model = "gpt-3.5-turbo";
+const names = {
+  you: "You",
+  summarizer: "YouTube Summarizer",
+};
+
 const observer = new MutationObserver(mutationCallback);
 observer.observe(document.body, { childList: true, subtree: true });
 
@@ -6,6 +12,20 @@ const chatBtnSvg = `<svg width="181" height="181" viewBox="0 0 181 181" xmlns="h
 let apiKey = "";
 
 let sentTranscript = false;
+
+let messages = [
+  {
+    role: "system",
+    content: `You are a helpful summarizer. You summarize YouTube videos and answer questions that users may have about such videos. Refrain from mentioning that this is a YouTube video, as it is already known.
+
+Your ultimate goal is to save the user time from needing to watch the video. As such, be sure to include the points that are most important. Exclude the excess, verbose content, and trim it down to a concise, succint summary.
+
+For example, instead of simply stating "this video discusses the pros and cons of EVs", mention what these pros and cons actually are. This allows the user to garner value from the video without watching it in full.`,
+  },
+];
+
+// used in saveScroll() and restoreScroll()
+let wasScrolledToBottom = false;
 
 function mutationCallback() {
   const topLevelButtons = document.querySelector(
@@ -615,6 +635,15 @@ function transcriptModified() {
 
   console.log(apiKey);
 
+  messages.push({
+    role: "user",
+    content: `Transcript: """
+${transcript}
+"""
+  
+Using the provided transcript, summarize this YouTube video.`,
+  });
+
   fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -622,25 +651,8 @@ function transcriptModified() {
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: `You are a helpful summarizer. You summarize YouTube videos and answer questions that users may have about such videos. Refrain from mentioning that this is a YouTube video, as it is already known.
-
-Your ultimate goal is to save the user time from needing to watch the video. As such, be sure to include the points that are most important. Exclude the excess, verbose content, and trim it down to a concise, succint summary.
-
-For example, instead of simply stating "this video discusses the pros and cons of EVs", mention what these pros and cons actually are. This allows the user to garner value from the video without watching it in full.`,
-        },
-        {
-          role: "user",
-          content: `Transcript: """
-${transcript}
-"""
-
-Using the provided transcript, summarize this YouTube video.`,
-        },
-      ],
+      model,
+      messages,
     }),
   })
     .then((res) => res.json())
@@ -656,29 +668,14 @@ Using the provided transcript, summarize this YouTube video.`,
       );
 
       content.innerHTML = `
-        <div data-yt-summarize-role="messages">
-          <div data-yt-summarize-role="message">
-            <div data-yt-summarize-role="messageAuthor"></div>
-            <div data-yt-summarize-role="messageContent"></div>
-          </div>
-        </div>
+        <div data-yt-summarize-role="messages"></div>
         <div data-yt-summarize-role="chatInputContainer">
           <input type="text" placeholder="Ask a question..." />
           <button>Ask</button>
         </div>
       `;
 
-      const firstMessage = content.querySelector(
-        '[data-yt-summarize-role="message"]'
-      );
-
-      firstMessage.querySelector(
-        '[data-yt-summarize-role="messageAuthor"]'
-      ).innerText = "YouTube Summarizer";
-
-      firstMessage.querySelector(
-        '[data-yt-summarize-role="messageContent"]'
-      ).innerText = summary;
+      createMessageElem(names.summarizer, summary);
 
       setStatus("Ready and waiting to assist!");
 
@@ -692,7 +689,91 @@ Using the provided transcript, summarize this YouTube video.`,
       chatButton.focus();
 
       chatButton.addEventListener("click", () => {
+        const question = chatInput.value;
         chatInput.value = "";
+
+        createMessageElem(names.you, question);
+        messages.push({
+          role: "user",
+          content: `Question: """
+${question}
+"""
+
+Using the previously provided transcript, answer this question.`,
+        });
+
+        fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({ model, messages }),
+        })
+          .then((res) => res.json())
+          .then((res) => {
+            const answer = res.choices[0].message.content;
+            createMessageElem(names.summarizer, answer);
+            console.log(answer);
+          });
+      });
+
+      chatInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") chatButton.click();
       });
     });
+}
+
+function createMessageElem(author, content) {
+  const messages = document.querySelector(
+    '[data-yt-summarize-role="chatWindow"] #content [data-yt-summarize-role="messages"]'
+  );
+
+  if (!messages) throw new Error("Messages elem not found");
+
+  saveScroll();
+
+  const messageElem = document.createElement("div");
+  messageElem.dataset.ytSummarizeRole = "message";
+
+  const messageAuthorElem = document.createElement("div");
+  messageAuthorElem.dataset.ytSummarizeRole = "messageAuthor";
+
+  const messageContentElem = document.createElement("div");
+  messageContentElem.dataset.ytSummarizeRole = "messageContent";
+
+  messageAuthorElem.innerText = author;
+  messageContentElem.innerText = content;
+
+  messageElem.append(messageAuthorElem, messageContentElem);
+
+  messages.append(messageElem);
+
+  restoreScroll();
+
+  return { messageElem, messageAuthorElem, messageContentElem };
+}
+
+function saveScroll() {
+  const messages = document.querySelector(
+    '[data-yt-summarize-role="chatWindow"] #content [data-yt-summarize-role="messages"]'
+  );
+
+  if (!messages) throw new Error("Messages elem not found");
+
+  wasScrolledToBottom =
+    messages.scrollTop + messages.offsetHeight === messages.scrollHeight;
+}
+
+function restoreScroll() {
+  const messages = document.querySelector(
+    '[data-yt-summarize-role="chatWindow"] #content [data-yt-summarize-role="messages"]'
+  );
+
+  if (!messages) throw new Error("Messages elem not found");
+
+  // no automated scroll necessary if user was not scrolled to bottom
+  if (!wasScrolledToBottom) return;
+
+  messages.scrollTop = messages.scrollHeight - messages.offsetHeight;
 }
