@@ -89,3 +89,7 @@ html:not([dark]) [data-yt-summarize-role="chatWindow"] #content {
   opacity: 1;
   background-color: rgb(128 128 128 / 0.03);
 }
+
+[data-yt-summarize-role="timestampLink"] {
+  color: var(--yt-endpoint-color, var(--yt-spec-call-to-action));
+}

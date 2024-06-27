@@ -1,4 +1,4 @@
-const model = "gpt-3.5-turbo";
+const model = "gpt-4o";
 const names = {
   you: "You",
   summarizer: "YouTube Summarizer",
@@ -13,12 +13,16 @@ let apiKey = "";
 
 let sentTranscript = false;
 
+// TODO: if bullet points work well, add better formatting after it's generated (or perhaps even full markdown support?)
+// TODO: potentially experiment with adding quotes to summaries (so it's more accurate and in the speaker's voice etc)
 let messages = [
   {
     role: "system",
     content: `You are a helpful summarizer. You summarize YouTube videos and answer questions that users may have about such videos. Refrain from mentioning that this is a YouTube video, as it is already known.
 
 Your ultimate goal is to save the user time from needing to watch the video. As such, be sure to include the points that are most important. Exclude the excess, verbose content, and trim it down to a concise, succint summary.
+
+To make the summary more concise, you should utilize a bullet point format rather than paragraphs. Only the most crucial "key takeaway" bullet points should be included. Additionally, provide timestamps in brackets throughout your summaries and replies. This will allow the user to quickly find the referenced sections of the video.
 
 For example, instead of simply stating "this video discusses the pros and cons of EVs", mention what these pros and cons actually are. This allows the user to garner value from the video without watching it in full.`,
   },
@@ -633,6 +637,22 @@ function transcriptModified() {
     .map((segment) => `[${segment.stamp}] ${segment.text}`)
     .join("\n");
 
+  const videoTitle = document.querySelector(
+    "ytd-watch-metadata #title"
+  ).innerText;
+  console.log(videoTitle);
+
+  const channelName = document.querySelector(
+    "ytd-watch-metadata ytd-channel-name"
+  ).innerText;
+  console.log(channelName);
+
+  // note that the description may be cut off. it doesn't really need to be expanded - the goal is just to get the first couple sentence
+  const videoDescription = document.querySelector(
+    "ytd-watch-metadata #description-inline-expander"
+  ).innerText;
+  console.log(videoDescription);
+
   if (!transcript || sentTranscript) return;
 
   sentTranscript = true;
@@ -644,11 +664,23 @@ function transcriptModified() {
 
   messages.push({
     role: "user",
-    content: `Transcript: """
+    content: `YouTube Channel Name: """
+${channelName}
+"""
+
+Video Title: """
+${videoTitle}
+"""
+
+Video Description: """
+${videoDescription}
+"""
+
+Transcript: """
 ${transcript}
 """
   
-Using the provided transcript, summarize this YouTube video.`,
+Using the provided video information, summarize this YouTube video.`,
   });
 
   fetch("https://api.openai.com/v1/chat/completions", {
@@ -706,7 +738,7 @@ Using the provided transcript, summarize this YouTube video.`,
 ${question}
 """
 
-Using the previously provided transcript, answer this question.`,
+Using the previously provided transcript, answer this question (or, if it is a statement, provide a natural reply).`,
         });
 
         fetch("https://api.openai.com/v1/chat/completions", {
@@ -750,7 +782,23 @@ function createMessageElem(author, content) {
   messageContentElem.dataset.ytSummarizeRole = "messageContent";
 
   messageAuthorElem.innerText = author;
-  messageContentElem.innerText = content;
+  messageContentElem.innerHTML = convertTimestamps(
+    content.replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+  );
+
+  const timestamps = messageContentElem.querySelectorAll(
+    'a[data-yt-summarize-role="timestampLink"]'
+  );
+
+  for (const timestamp of timestamps) {
+    timestamp.addEventListener("click", (e) => {
+      e.preventDefault();
+      console.log(timestamp.dataset.ytSummarizeSeconds);
+      document.querySelector("#player video").currentTime = Number(
+        timestamp.dataset.ytSummarizeSeconds
+      );
+    });
+  }
 
   messageElem.append(messageAuthorElem, messageContentElem);
 
@@ -783,4 +831,27 @@ function restoreScroll() {
   if (!wasScrolledToBottom) return;
 
   messages.scrollTop = messages.scrollHeight - messages.offsetHeight;
+}
+
+function convertTimestamps(text) {
+  const timestampRegex = /\b(\d{1,2}:\d{2})\b/g;
+
+  const urlParams = new URLSearchParams(window.location.search);
+
+  return text.replace(timestampRegex, function (match) {
+    const seconds = convertTimestampToSeconds(match);
+    const url = `/watch?v=${urlParams.get("v")}&t=${seconds}s`;
+    return `<a data-yt-summarize-role="timestampLink" data-yt-summarize-seconds="${seconds}" href="${url}">${match}</a>`;
+  });
+}
+
+function convertTimestampToSeconds(timestamp) {
+  const split = timestamp.split(":").map(Number);
+  let seconds = 0;
+
+  if (split.length === 2) seconds = split[0] * 60 + split[1];
+  else if (split.length === 3)
+    seconds = split[0] * 3600 + split[1] * 60 + split[2];
+
+  return seconds;
 }
