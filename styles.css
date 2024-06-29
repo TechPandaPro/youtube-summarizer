@@ -36,6 +36,27 @@ html:not([dark]) [data-yt-summarize-role="chatWindow"] #content {
   margin-left: 4px;
 }
 
+[data-yt-summarize-role="messageContent"] ul {
+  margin: 0;
+  padding: 0 20px;
+}
+
+[data-yt-summarize-role="messageContent"] ul li + li,
+[data-yt-summarize-role="messageContent"] ul li ul,
+[data-yt-summarize-role="messageContent"] ul + p,
+[data-yt-summarize-role="messageContent"] p + p {
+  margin-top: 8px;
+}
+
+[data-yt-summarize-role="messageContent"] h1,
+[data-yt-summarize-role="messageContent"] h2,
+[data-yt-summarize-role="messageContent"] h3,
+[data-yt-summarize-role="messageContent"] h4,
+[data-yt-summarize-role="messageContent"] h5,
+[data-yt-summarize-role="messageContent"] h6 {
+  margin: 8px 0;
+}
+
 [data-yt-summarize-role="chatInputContainer"] {
   display: flex;
   gap: 12px;

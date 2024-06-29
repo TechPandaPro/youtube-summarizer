@@ -7,7 +7,7 @@
     {
       "matches": ["https://www.youtube.com/watch?v=*"],
       "css": ["styles.css"],
-      "js": ["script.js"]
+      "js": ["marked.js", "script.js"]
     }
   ],
   "web_accessible_resources": [

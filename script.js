@@ -11,9 +11,10 @@ const chatBtnSvg = `<svg width="181" height="181" viewBox="0 0 181 181" xmlns="h
 
 let apiKey = "";
 
+let transcriptUrl;
+
 let sentTranscript = false;
 
-// TODO: if bullet points work well, add better formatting after it's generated (or perhaps even full markdown support?)
 // TODO: potentially experiment with adding quotes to summaries (so it's more accurate and in the speaker's voice etc)
 let messages = [
   {
@@ -22,7 +23,7 @@ let messages = [
 
 Your ultimate goal is to save the user time from needing to watch the video. As such, be sure to include the points that are most important. Exclude the excess, verbose content, and trim it down to a concise, succint summary.
 
-To make the summary more concise, you should utilize a bullet point format rather than paragraphs. Only the most crucial "key takeaway" bullet points should be included. Additionally, provide timestamps in brackets throughout your summaries and replies. This will allow the user to quickly find the referenced sections of the video.
+To make the summary more concise, you should utilize a bullet point format rather than paragraphs. Only the most crucial "key takeaway" bullet points should be included. Additionally, provide timestamps in parenthesis throughout your summaries and replies. This will allow the user to quickly find the referenced sections of the video.
 
 For example, instead of simply stating "this video discusses the pros and cons of EVs", mention what these pros and cons actually are. This allows the user to garner value from the video without watching it in full.`,
   },
@@ -32,6 +33,11 @@ For example, instead of simply stating "this video discusses the pros and cons o
 let wasScrolledToBottom = false;
 
 function mutationCallback() {
+  if (transcriptUrl && transcriptUrl !== window.location.href) {
+    document.body.innerHTML = "";
+    window.location.reload();
+  }
+
   const topLevelButtons = document.querySelector(
     "ytd-watch-metadata #top-level-buttons-computed"
   );
@@ -123,6 +129,8 @@ async function toggleChat() {
   );
 
   if (existingChat) return existingChat.scrollIntoView();
+
+  transcriptUrl = window.location.href;
 
   const transcriptBtn = document.querySelector(
     '#description .yt-spec-button-shape-next[aria-label="Show transcript"]'
@@ -782,7 +790,7 @@ function createMessageElem(author, content) {
   messageContentElem.dataset.ytSummarizeRole = "messageContent";
 
   messageAuthorElem.innerText = author;
-  messageContentElem.innerHTML = convertTimestamps(
+  messageContentElem.innerHTML = formatMessage(
     content.replaceAll("<", "&lt;").replaceAll(">", "&gt;")
   );
 
@@ -833,8 +841,39 @@ function restoreScroll() {
   messages.scrollTop = messages.scrollHeight - messages.offsetHeight;
 }
 
+function formatMessage(text) {
+  const timestampsAdded = convertTimestamps(text);
+  const parsed = marked.parse(timestampsAdded);
+  return parsed;
+}
+
+// function formatMessage(text) {
+//   const timestampsConverted = convertTimestamps(text);
+//   const oldLines = timestampsConverted.split("\n");
+//   const finalLines = [];
+//   let currentlyList = false;
+//   for (let i = 0; i < oldLines.length; i++) {
+//     const line = oldLines[i];
+//     if (line.startsWith("- ")) {
+//       if (!currentlyList)
+//         finalLines.push('<ul data-yt-summarize-role="messageMdList">');
+//       currentlyList = true;
+//     } else {
+//       if (currentlyList && !line) continue;
+//       if (currentlyList || i === oldLines.length - 1) finalLines.push("</ul>");
+//       currentlyList = false;
+//     }
+//     if (currentlyList) finalLines.push(`<li>${line.substring(2)}</li>`);
+//     else {
+//       if (finalLines.length >= 1) finalLines.push("<br>");
+//       finalLines.push(line);
+//     }
+//   }
+//   return finalLines.join("\n");
+// }
+
 function convertTimestamps(text) {
-  const timestampRegex = /\b(\d{1,2}:\d{2})\b/g;
+  const timestampRegex = /\b(\d{1,2}:\d{2}(?::\d{2})?)\b/g;
 
   const urlParams = new URLSearchParams(window.location.search);
 
